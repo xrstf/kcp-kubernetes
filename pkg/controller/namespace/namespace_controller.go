@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpkubernetesclientset "github.com/kcp-dev/client-go/kubernetes"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
 	kcpcorev1informers "github.com/kcp-dev/client-go/informers/core/v1"
+	kcpkubernetesclientset "github.com/kcp-dev/client-go/kubernetes"
 	kcpcorev1listers "github.com/kcp-dev/client-go/listers/core/v1"
 	kcpmetadata "github.com/kcp-dev/client-go/metadata"
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 	"golang.org/x/time/rate"
 
 	v1 "k8s.io/api/core/v1"
@@ -67,7 +67,7 @@ type NamespaceController struct {
 func NewNamespaceController(
 	kubeClient kcpkubernetesclientset.ClusterInterface,
 	metadataClient kcpmetadata.ClusterInterface,
-	discoverResourcesFn func(clusterName logicalcluster.Name) ([]*metav1.APIResourceList, error),
+	discoverResourcesFn func(clusterName logicalcluster.Path) ([]*metav1.APIResourceList, error),
 	namespaceInformer kcpcorev1informers.NamespaceClusterInformer,
 	resyncPeriod time.Duration,
 	finalizerToken v1.FinalizerName) *NamespaceController {
@@ -78,8 +78,8 @@ func NewNamespaceController(
 		namespacedResourcesDeleter: deletion.NewNamespacedResourcesDeleter(kubeClient.CoreV1().Namespaces(), metadataClient, kubeClient.CoreV1(), discoverResourcesFn, finalizerToken),
 	}
 
-	if kubeClient != nil && kubeClient.Cluster(logicalcluster.New("fake")).CoreV1().RESTClient().GetRateLimiter() != nil {
-		ratelimiter.RegisterMetricAndTrackRateLimiterUsage("namespace_controller", kubeClient.Cluster(logicalcluster.New("fake")).CoreV1().RESTClient().GetRateLimiter())
+	if kubeClient != nil && kubeClient.Cluster(logicalcluster.Name("fake").Path()).CoreV1().RESTClient().GetRateLimiter() != nil {
+		ratelimiter.RegisterMetricAndTrackRateLimiterUsage("namespace_controller", kubeClient.Cluster(logicalcluster.Name("fake").Path()).CoreV1().RESTClient().GetRateLimiter())
 	}
 
 	// configure the namespace informer event handlers
