@@ -173,7 +173,7 @@ func (p *PolicyData) EnsureRBACPolicy() genericapiserver.PostStartHookFunc {
 				utilruntime.HandleError(fmt.Errorf("unable to initialize client set: %v", err))
 				return false, nil
 			}
-			client := clientClusterGetter.Cluster(logicalcluster.New("system:admin"))
+			client := clientClusterGetter.Cluster(logicalcluster.Name("system:admin").Path())
 			return ensureRBACPolicy(p, client)
 		})
 		// if we're never able to make it through initialization, kill the API server
