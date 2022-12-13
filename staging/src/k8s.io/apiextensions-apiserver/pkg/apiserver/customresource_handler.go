@@ -145,6 +145,10 @@ type crdHandler struct {
 	maxRequestBodyBytes int64
 
 	tableConverterProvider TableConverterProvider
+
+	// disableServerSideApply allows to deactivate Server Side Apply for a specific API server instead of globally through the feature gate
+	// used for embedded cache server with kcp
+	disableServerSideApply bool
 }
 
 // crdInfo stores enough information to serve the storage for the custom resource
@@ -183,7 +187,7 @@ type crdStorageMap map[types.UID]*crdInfo
 
 const byGroupResource = "byGroupResource"
 
-func NewCustomResourceDefinitionHandler(versionDiscoveryHandler *versionDiscoveryHandler, groupDiscoveryHandler *groupDiscoveryHandler, crdInformer kcpapiextensionsv1informers.CustomResourceDefinitionClusterInformer, delegate http.Handler, restOptionsGetter generic.RESTOptionsGetter, admission admission.Interface, establishingController *establish.EstablishingController, serviceResolver webhook.ServiceResolver, authResolverWrapper webhook.AuthenticationInfoResolverWrapper, masterCount int, authorizer authorizer.Authorizer, requestTimeout time.Duration, minRequestTimeout time.Duration, staticOpenAPISpec *spec.Swagger, maxRequestBodyBytes int64) (*crdHandler, error) {
+func NewCustomResourceDefinitionHandler(versionDiscoveryHandler *versionDiscoveryHandler, groupDiscoveryHandler *groupDiscoveryHandler, crdInformer kcpapiextensionsv1informers.CustomResourceDefinitionClusterInformer, delegate http.Handler, restOptionsGetter generic.RESTOptionsGetter, admission admission.Interface, establishingController *establish.EstablishingController, serviceResolver webhook.ServiceResolver, authResolverWrapper webhook.AuthenticationInfoResolverWrapper, masterCount int, authorizer authorizer.Authorizer, requestTimeout time.Duration, minRequestTimeout time.Duration, staticOpenAPISpec *spec.Swagger, maxRequestBodyBytes int64, disableServerSideApply bool) (*crdHandler, error) {
 	ret := &crdHandler{
 		versionDiscoveryHandler: versionDiscoveryHandler,
 		groupDiscoveryHandler:   groupDiscoveryHandler,
@@ -200,6 +204,7 @@ func NewCustomResourceDefinitionHandler(versionDiscoveryHandler *versionDiscover
 		minRequestTimeout:       minRequestTimeout,
 		staticOpenAPISpec:       staticOpenAPISpec,
 		maxRequestBodyBytes:     maxRequestBodyBytes,
+		disableServerSideApply:  disableServerSideApply,
 	}
 	crdInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    ret.createCustomResourceDefinition,
@@ -394,7 +399,7 @@ func (r *crdHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) {
+	if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) && !r.disableServerSideApply {
 		supportedTypes = append(supportedTypes, string(types.ApplyPatchType))
 	}
 
@@ -795,7 +800,7 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 		structuralSchemas[v.Name] = s
 	}
 
-	openAPIModels, err := buildOpenAPIModelsForApply(r.staticOpenAPISpec, crd)
+	openAPIModels, err := buildOpenAPIModelsForApply(r.staticOpenAPISpec, crd, r.disableServerSideApply)
 	var modelsByGKV openapi.ModelsByGKV
 
 	if err != nil {
@@ -1012,7 +1017,7 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 
 			OpenapiModels: modelsByGKV,
 		}
-		if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) {
+		if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) && !r.disableServerSideApply {
 			resetFields := storages[v.Name].CustomResource.GetResetFields()
 			reqScope := *requestScopes[v.Name]
 			reqScope, err = scopeWithFieldManager(
@@ -1046,7 +1051,7 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 		}
 		scaleScope.TableConvertor = scaleTable
 
-		if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) && subresources != nil && subresources.Scale != nil {
+		if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) && subresources != nil && subresources.Scale != nil && !r.disableServerSideApply {
 			scaleScope, err = scopeWithFieldManager(
 				typeConverter,
 				scaleScope,
@@ -1069,7 +1074,7 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 			ClusterScoped: clusterScoped,
 		}
 
-		if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) && subresources != nil && subresources.Status != nil {
+		if utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) && subresources != nil && subresources.Status != nil && !r.disableServerSideApply {
 			resetFields := storages[v.Name].Status.GetResetFields()
 			statusScope, err = scopeWithFieldManager(
 				typeConverter,
@@ -1523,8 +1528,8 @@ func hasServedCRDVersion(spec *apiextensionsv1.CustomResourceDefinitionSpec, ver
 // buildOpenAPIModelsForApply constructs openapi models from any validation schemas specified in the custom resource,
 // and merges it with the models defined in the static OpenAPI spec.
 // Returns nil models if the ServerSideApply feature is disabled, or the static spec is nil, or an error is encountered.
-func buildOpenAPIModelsForApply(staticOpenAPISpec *spec.Swagger, crd *apiextensionsv1.CustomResourceDefinition) (proto.Models, error) {
-	if !utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) {
+func buildOpenAPIModelsForApply(staticOpenAPISpec *spec.Swagger, crd *apiextensionsv1.CustomResourceDefinition, disableServerSideApply bool) (proto.Models, error) {
+	if !utilfeature.DefaultFeatureGate.Enabled(features.ServerSideApply) || disableServerSideApply {
 		return nil, nil
 	}
 	if staticOpenAPISpec == nil {

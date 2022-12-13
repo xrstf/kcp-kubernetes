@@ -95,6 +95,9 @@ type ExtraConfig struct {
 	// KCP
 	ClusterAwareCRDLister  kcp.ClusterAwareCRDClusterLister
 	TableConverterProvider TableConverterProvider
+	// DisableServerSideApply deactivates Server Side Apply for a specific API server instead of globally through the feature gate
+	// used with the embedded cache server in kcp
+	DisableServerSideApply bool
 }
 
 type Config struct {
@@ -241,6 +244,7 @@ func (c completedConfig) New(delegationTarget genericapiserver.DelegationTarget)
 		time.Duration(c.GenericConfig.MinRequestTimeout)*time.Second,
 		apiGroupInfo.StaticOpenAPISpec,
 		c.GenericConfig.MaxRequestBodyBytes,
+		c.ExtraConfig.DisableServerSideApply,
 	)
 	if err != nil {
 		return nil, err
