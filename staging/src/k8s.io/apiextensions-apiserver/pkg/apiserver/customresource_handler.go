@@ -27,6 +27,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	kcpapiextensionsv1informers "k8s.io/apiextensions-apiserver/pkg/client/kcp/informers/externalversions/apiextensions/v1"
 	kcpapiextensionsv1listers "k8s.io/apiextensions-apiserver/pkg/client/kcp/listers/apiextensions/v1"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
@@ -502,6 +503,13 @@ func (r *crdHandler) serveResource(w http.ResponseWriter, req *http.Request, req
 			responsewriters.ErrorNegotiated(err, Codecs, schema.GroupVersion{Group: requestInfo.APIGroup, Version: requestInfo.APIVersion}, w, req)
 			return nil
 		}
+
+		// kcp 2278 debugging
+		if strings.HasSuffix(string(crd.UID), ".wildcard.partial-metadata") {
+			klog.Errorf("kcp 2278: create with wildcard uid %v", string(crd.UID))
+		}
+		// kcp 2278 debugging
+
 		return handlers.CreateResource(storage, requestScope, r.admission)
 	case "update":
 		return handlers.UpdateResource(storage, requestScope, r.admission)
@@ -1481,8 +1489,17 @@ func (v *unstructuredSchemaCoercer) apply(u *unstructured.Unstructured) (unknown
 			if v.returnUnknownFieldPaths {
 				pruneOpts.ReturnPruned = true
 			}
+
 			unknownFieldPaths = structuralpruning.PruneWithOptions(u.Object, v.structuralSchemas[gv.Version], false, pruneOpts)
 			structuraldefaulting.PruneNonNullableNullsWithoutDefaults(u.Object, v.structuralSchemas[gv.Version])
+
+			// kcp 2278 debugging
+			if objectMeta.Name == "syncer-test" {
+				if _, found := u.Object["spec"]; !found {
+					klog.InfoS("kcp 2278: syncer-test is missing spec", "v.structrualSchemas", spew.Sdump(v.structuralSchemas))
+				}
+			}
+			// kcp 2278 debugging
 		}
 
 		if err := schemaobjectmeta.Coerce(nil, u.Object, v.structuralSchemas[gv.Version], false, v.dropInvalidMetadata); err != nil {
