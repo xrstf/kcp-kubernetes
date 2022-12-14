@@ -1494,7 +1494,7 @@ func (v *unstructuredSchemaCoercer) apply(u *unstructured.Unstructured) (unknown
 			structuraldefaulting.PruneNonNullableNullsWithoutDefaults(u.Object, v.structuralSchemas[gv.Version])
 
 			// kcp 2278 debugging
-			if objectMeta.Name == "syncer-test" {
+			if objectMeta != nil && objectMeta.Name == "syncer-test" {
 				if _, found := u.Object["spec"]; !found {
 					klog.InfoS("kcp 2278: syncer-test is missing spec", "v.structrualSchemas", spew.Sdump(v.structuralSchemas))
 				}
