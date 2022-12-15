@@ -24,7 +24,7 @@ package v1
 
 import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/client-go/rest"
 	kcpapiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/client/kcp/clientset/versioned/typed/apiextensions/v1"
@@ -37,11 +37,11 @@ type ApiextensionsV1ClusterClient struct {
 	*kcptesting.Fake 
 }
 
-func (c *ApiextensionsV1ClusterClient) Cluster(cluster logicalcluster.Name) apiextensionsv1.ApiextensionsV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *ApiextensionsV1ClusterClient) Cluster(clusterPath logicalcluster.Path) apiextensionsv1.ApiextensionsV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &ApiextensionsV1Client{Fake: c.Fake, Cluster: cluster}
+	return &ApiextensionsV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 
@@ -52,7 +52,7 @@ var _ apiextensionsv1.ApiextensionsV1Interface = (*ApiextensionsV1Client)(nil)
 
 type ApiextensionsV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *ApiextensionsV1Client) RESTClient() rest.Interface {
@@ -62,5 +62,5 @@ func (c *ApiextensionsV1Client) RESTClient() rest.Interface {
 
 
 func (c *ApiextensionsV1Client) CustomResourceDefinitions() apiextensionsv1.CustomResourceDefinitionInterface {
-	return &customResourceDefinitionsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &customResourceDefinitionsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

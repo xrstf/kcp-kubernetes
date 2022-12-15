@@ -23,8 +23,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"	
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"	
+	"github.com/kcp-dev/logicalcluster/v3"
 	
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/apimachinery/pkg/labels"
@@ -41,7 +41,7 @@ type CustomResourceDefinitionClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*apiextensionsv1.CustomResourceDefinition, err error)
 	// Cluster returns a lister that can list and get CustomResourceDefinitions in one workspace.
-Cluster(cluster logicalcluster.Name)apiextensionsv1listers.CustomResourceDefinitionLister
+Cluster(clusterName logicalcluster.Name)apiextensionsv1listers.CustomResourceDefinitionLister
 CustomResourceDefinitionClusterListerExpansion
 }
 
@@ -67,19 +67,19 @@ func (s *customResourceDefinitionClusterLister) List(selector labels.Selector) (
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get CustomResourceDefinitions.
-func (s *customResourceDefinitionClusterLister) Cluster(cluster logicalcluster.Name)apiextensionsv1listers.CustomResourceDefinitionLister {
-return &customResourceDefinitionLister{indexer: s.indexer, cluster: cluster}
+func (s *customResourceDefinitionClusterLister) Cluster(clusterName logicalcluster.Name)apiextensionsv1listers.CustomResourceDefinitionLister {
+return &customResourceDefinitionLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // customResourceDefinitionLister implements the apiextensionsv1listers.CustomResourceDefinitionLister interface.
 type customResourceDefinitionLister struct {
 	indexer cache.Indexer
-	cluster logicalcluster.Name
+	clusterName logicalcluster.Name
 }
 
 // List lists all CustomResourceDefinitions in the indexer for a workspace.
 func (s *customResourceDefinitionLister) List(selector labels.Selector) (ret []*apiextensionsv1.CustomResourceDefinition, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*apiextensionsv1.CustomResourceDefinition))
 	})
 	return ret, err
@@ -87,7 +87,7 @@ func (s *customResourceDefinitionLister) List(selector labels.Selector) (ret []*
 
 // Get retrieves the CustomResourceDefinition from the indexer for a given workspace and name.
 func (s *customResourceDefinitionLister) Get(name string) (*apiextensionsv1.CustomResourceDefinition, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

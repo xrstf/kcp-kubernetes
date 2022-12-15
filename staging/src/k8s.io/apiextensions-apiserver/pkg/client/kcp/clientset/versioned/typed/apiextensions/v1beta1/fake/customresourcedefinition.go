@@ -23,7 +23,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -49,12 +49,12 @@ type customResourceDefinitionsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *customResourceDefinitionsClusterClient) Cluster(cluster logicalcluster.Name) apiextensionsv1beta1client.CustomResourceDefinitionInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *customResourceDefinitionsClusterClient) Cluster(clusterPath logicalcluster.Path) apiextensionsv1beta1client.CustomResourceDefinitionInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &customResourceDefinitionsClient{Fake: c.Fake, Cluster: cluster}
+	return &customResourceDefinitionsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 
@@ -84,13 +84,13 @@ func (c *customResourceDefinitionsClusterClient) Watch(ctx context.Context, opts
 }
 type customResourceDefinitionsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 	
 }
 
 
 func (c *customResourceDefinitionsClient) Create(ctx context.Context, customResourceDefinition *apiextensionsv1beta1.CustomResourceDefinition, opts metav1.CreateOptions) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(customResourceDefinitionsResource, c.Cluster, customResourceDefinition), &apiextensionsv1beta1.CustomResourceDefinition{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(customResourceDefinitionsResource, c.ClusterPath, customResourceDefinition), &apiextensionsv1beta1.CustomResourceDefinition{})
 	if obj == nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *customResourceDefinitionsClient) Create(ctx context.Context, customReso
 }
 
 func (c *customResourceDefinitionsClient) Update(ctx context.Context, customResourceDefinition *apiextensionsv1beta1.CustomResourceDefinition, opts metav1.UpdateOptions) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(customResourceDefinitionsResource, c.Cluster, customResourceDefinition), &apiextensionsv1beta1.CustomResourceDefinition{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(customResourceDefinitionsResource, c.ClusterPath, customResourceDefinition), &apiextensionsv1beta1.CustomResourceDefinition{})
 	if obj == nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (c *customResourceDefinitionsClient) Update(ctx context.Context, customReso
 }
 
 func (c *customResourceDefinitionsClient) UpdateStatus(ctx context.Context, customResourceDefinition *apiextensionsv1beta1.CustomResourceDefinition, opts metav1.UpdateOptions) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(customResourceDefinitionsResource, c.Cluster, "status", customResourceDefinition), &apiextensionsv1beta1.CustomResourceDefinition{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(customResourceDefinitionsResource, c.ClusterPath, "status", customResourceDefinition), &apiextensionsv1beta1.CustomResourceDefinition{})
 	if obj == nil {
 		return nil, err
 	}
@@ -114,19 +114,19 @@ func (c *customResourceDefinitionsClient) UpdateStatus(ctx context.Context, cust
 }
 
 func (c *customResourceDefinitionsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(customResourceDefinitionsResource, c.Cluster, name, opts), &apiextensionsv1beta1.CustomResourceDefinition{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(customResourceDefinitionsResource, c.ClusterPath, name, opts), &apiextensionsv1beta1.CustomResourceDefinition{})
 	return err
 }
 
 func (c *customResourceDefinitionsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(customResourceDefinitionsResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(customResourceDefinitionsResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &apiextensionsv1beta1.CustomResourceDefinitionList{})
 	return err
 }
 
 func (c *customResourceDefinitionsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(customResourceDefinitionsResource, c.Cluster, name), &apiextensionsv1beta1.CustomResourceDefinition{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(customResourceDefinitionsResource, c.ClusterPath, name), &apiextensionsv1beta1.CustomResourceDefinition{})
 	if obj == nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (c *customResourceDefinitionsClient) Get(ctx context.Context, name string, 
 
 // List takes label and field selectors, and returns the list of CustomResourceDefinitions that match those selectors.
 func (c *customResourceDefinitionsClient) List(ctx context.Context, opts metav1.ListOptions) (*apiextensionsv1beta1.CustomResourceDefinitionList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(customResourceDefinitionsResource, customResourceDefinitionsKind, c.Cluster, opts), &apiextensionsv1beta1.CustomResourceDefinitionList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(customResourceDefinitionsResource, customResourceDefinitionsKind, c.ClusterPath, opts), &apiextensionsv1beta1.CustomResourceDefinitionList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -154,11 +154,11 @@ func (c *customResourceDefinitionsClient) List(ctx context.Context, opts metav1.
 }
 
 func (c *customResourceDefinitionsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(customResourceDefinitionsResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(customResourceDefinitionsResource, c.ClusterPath, opts))
 }
 
 func (c *customResourceDefinitionsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*apiextensionsv1beta1.CustomResourceDefinition, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(customResourceDefinitionsResource, c.Cluster, name, pt, data, subresources...), &apiextensionsv1beta1.CustomResourceDefinition{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(customResourceDefinitionsResource, c.ClusterPath, name, pt, data, subresources...), &apiextensionsv1beta1.CustomResourceDefinition{})
 	if obj == nil {
 		return nil, err
 	}

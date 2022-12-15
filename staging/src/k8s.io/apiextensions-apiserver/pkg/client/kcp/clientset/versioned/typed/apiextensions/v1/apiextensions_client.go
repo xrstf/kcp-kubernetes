@@ -25,8 +25,8 @@ package v1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/client-go/rest"
 
@@ -39,18 +39,18 @@ type ApiextensionsV1ClusterInterface interface {
 }
 
 type ApiextensionsV1ClusterScoper interface {
-	Cluster(logicalcluster.Name) apiextensionsv1.ApiextensionsV1Interface
+	Cluster(logicalcluster.Path) apiextensionsv1.ApiextensionsV1Interface
 }
 
 type ApiextensionsV1ClusterClient struct {
 	clientCache kcpclient.Cache[*apiextensionsv1.ApiextensionsV1Client]
 }
 
-func (c *ApiextensionsV1ClusterClient) Cluster(name logicalcluster.Name) apiextensionsv1.ApiextensionsV1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *ApiextensionsV1ClusterClient) Cluster(clusterPath logicalcluster.Path) apiextensionsv1.ApiextensionsV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 
@@ -74,7 +74,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*ApiextensionsV1Clus
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*apiextensionsv1.ApiextensionsV1Client]{
 		NewForConfigAndClient: apiextensionsv1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &ApiextensionsV1ClusterClient{clientCache: cache}, nil

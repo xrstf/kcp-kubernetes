@@ -23,8 +23,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 	"context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
@@ -43,7 +43,7 @@ type CustomResourceDefinitionsClusterGetter interface {
 // CustomResourceDefinitionClusterInterface can operate on CustomResourceDefinitions across all clusters,
 // or scope down to one cluster and return a apiextensionsv1client.CustomResourceDefinitionInterface.
 type CustomResourceDefinitionClusterInterface interface {
-	Cluster(logicalcluster.Name) apiextensionsv1client.CustomResourceDefinitionInterface
+	Cluster(logicalcluster.Path) apiextensionsv1client.CustomResourceDefinitionInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*apiextensionsv1.CustomResourceDefinitionList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -53,12 +53,12 @@ type customResourceDefinitionsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *customResourceDefinitionsClusterInterface) Cluster(name logicalcluster.Name) apiextensionsv1client.CustomResourceDefinitionInterface {
-	if name == logicalcluster.Wildcard {
+func (c *customResourceDefinitionsClusterInterface) Cluster(clusterPath logicalcluster.Path) apiextensionsv1client.CustomResourceDefinitionInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).CustomResourceDefinitions()
+	return c.clientCache.ClusterOrDie(clusterPath).CustomResourceDefinitions()
 }
 
 
