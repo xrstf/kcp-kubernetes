@@ -483,11 +483,15 @@ github.com/json-iterator/go
 # github.com/karrick/godirwalk v1.16.1 => github.com/karrick/godirwalk v1.16.1
 github.com/karrick/godirwalk
 # github.com/kcp-dev/apimachinery v0.0.0-20221102195355-d65878bc16be => github.com/kcp-dev/apimachinery v0.0.0-20221102195355-d65878bc16be
-## explicit
 github.com/kcp-dev/apimachinery/pkg/cache
 github.com/kcp-dev/apimachinery/pkg/client
 github.com/kcp-dev/apimachinery/third_party/informers
-# github.com/kcp-dev/client-go v0.0.0-20221025140308-a18ccea074a6 => github.com/kcp-dev/client-go v0.0.0-20221025140308-a18ccea074a6
+# github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0 => github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0
+## explicit
+github.com/kcp-dev/apimachinery/v2/pkg/cache
+github.com/kcp-dev/apimachinery/v2/pkg/client
+github.com/kcp-dev/apimachinery/v2/third_party/informers
+# github.com/kcp-dev/client-go v0.0.0-20221215092857-c1e5154a9825 => github.com/kcp-dev/client-go v0.0.0-20221025140308-a18ccea074a6
 ## explicit
 github.com/kcp-dev/client-go/informers
 github.com/kcp-dev/client-go/informers/admissionregistration
@@ -640,8 +644,10 @@ github.com/kcp-dev/client-go/listers/storage/v1beta1
 github.com/kcp-dev/client-go/metadata
 github.com/kcp-dev/client-go/third_party/k8s.io/client-go/tools/cache
 # github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.1 => github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.1
-## explicit
 github.com/kcp-dev/logicalcluster/v2
+# github.com/kcp-dev/logicalcluster/v3 v3.0.0 => github.com/kcp-dev/logicalcluster/v3 v3.0.0
+## explicit
+github.com/kcp-dev/logicalcluster/v3
 # github.com/libopenstorage/openstorage v1.0.0 => github.com/libopenstorage/openstorage v1.0.0
 ## explicit
 github.com/libopenstorage/openstorage/api
@@ -2756,8 +2762,10 @@ sigs.k8s.io/yaml
 # github.com/jung-kurt/gofpdf => github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5
 # github.com/karrick/godirwalk => github.com/karrick/godirwalk v1.16.1
 # github.com/kcp-dev/apimachinery => github.com/kcp-dev/apimachinery v0.0.0-20221102195355-d65878bc16be
+# github.com/kcp-dev/apimachinery/v2 => github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0
 # github.com/kcp-dev/client-go => github.com/kcp-dev/client-go v0.0.0-20221025140308-a18ccea074a6
 # github.com/kcp-dev/logicalcluster/v2 => github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.1
+# github.com/kcp-dev/logicalcluster/v3 => github.com/kcp-dev/logicalcluster/v3 v3.0.0
 # github.com/kisielk/errcheck => github.com/kisielk/errcheck v1.5.0
 # github.com/kisielk/gotool => github.com/kisielk/gotool v1.0.0
 # github.com/konsorten/go-windows-terminal-sequences => github.com/konsorten/go-windows-terminal-sequences v1.0.2
