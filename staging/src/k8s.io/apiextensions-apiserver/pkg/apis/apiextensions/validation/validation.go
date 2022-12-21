@@ -66,7 +66,7 @@ func ValidateCustomResourceDefinition(ctx context.Context, obj *apiextensions.Cu
 		// KCP: loosen naming restriction for CRDs created by the apibindings controller.
 		// TODO(ncdc): a user could potentially set this annotation in one of their own normal CRDs. Is there any
 		// mechanism that is restricted to the system so users can't bypass the standard plural.group requirement?
-		if _, bound := obj.Annotations["apis.kcp.dev/bound-crd"]; bound {
+		if _, bound := obj.Annotations["apis.kcp.io/bound-crd"]; bound {
 			return ret
 		}
 

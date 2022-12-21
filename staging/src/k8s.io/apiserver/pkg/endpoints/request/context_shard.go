@@ -27,7 +27,7 @@ const (
 	shardContextKey shardKey = iota
 
 	// AnnotationKey is the name of the annotation key used to denote an object's shard name.
-	AnnotationKey = "kcp.dev/shard"
+	AnnotationKey = "kcp.io/shard"
 )
 
 // Shard describes a shard

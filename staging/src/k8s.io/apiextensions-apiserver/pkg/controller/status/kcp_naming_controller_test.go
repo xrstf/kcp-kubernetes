@@ -34,7 +34,7 @@ func newBoundCRD(resource, group string) *crdBuilder {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: uuid.New().String(),
 				Annotations: map[string]string{
-					"apis.kcp.dev/bound-crd": "",
+					"apis.kcp.io/bound-crd": "",
 				},
 			},
 			Spec: apiextensionsv1.CustomResourceDefinitionSpec{
