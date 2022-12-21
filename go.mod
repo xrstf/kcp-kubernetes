@@ -54,7 +54,7 @@ require (
 	github.com/ishidawataru/sctp v0.0.0-20190723014705-7c296d48a2b5
 	github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0
 	github.com/kcp-dev/client-go v0.0.0-20221215092857-c1e5154a9825
-	github.com/kcp-dev/logicalcluster/v3 v3.0.0
+	github.com/kcp-dev/logicalcluster/v3 v3.0.2
 	github.com/libopenstorage/openstorage v1.0.0
 	github.com/lithammer/dedent v1.1.0
 	github.com/lpabon/godbc v0.1.1 // indirect
@@ -306,7 +306,7 @@ replace (
 	github.com/kcp-dev/apimachinery/v2 => github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0
 	github.com/kcp-dev/client-go => github.com/kcp-dev/client-go v0.0.0-20221025140308-a18ccea074a6
 	github.com/kcp-dev/logicalcluster/v2 => github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.1
-	github.com/kcp-dev/logicalcluster/v3 => github.com/kcp-dev/logicalcluster/v3 v3.0.0
+	github.com/kcp-dev/logicalcluster/v3 => github.com/kcp-dev/logicalcluster/v3 v3.0.2
 	github.com/kisielk/errcheck => github.com/kisielk/errcheck v1.5.0
 	github.com/kisielk/gotool => github.com/kisielk/gotool v1.0.0
 	github.com/konsorten/go-windows-terminal-sequences => github.com/konsorten/go-windows-terminal-sequences v1.0.2

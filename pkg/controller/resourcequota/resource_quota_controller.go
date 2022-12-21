@@ -334,7 +334,7 @@ func (rq *Controller) syncResourceQuotaFromKey(ctx context.Context, key string) 
 
 const (
 	kcpClusterScopedQuotaNamespace                 = "admin"
-	kcpExperimentalClusterScopedQuotaAnnotationKey = "experimental.quota.kcp.dev/cluster-scoped"
+	kcpExperimentalClusterScopedQuotaAnnotationKey = "experimental.quota.kcp.io/cluster-scoped"
 )
 
 // syncResourceQuota runs a complete sync of resource quota status across all known kinds

@@ -23,7 +23,7 @@ import (
 )
 
 func isSyncerViewDiffAnnotation(annotationKey string) bool {
-	return strings.SplitN(annotationKey, "/", 2)[0] == "diff.syncer.internal.kcp.dev"
+	return strings.SplitN(annotationKey, "/", 2)[0] == "diff.syncer.internal.kcp.io"
 }
 
 func getSyncerViewDiffAnnotations(newCustomResourceObject *unstructured.Unstructured) map[string]string {

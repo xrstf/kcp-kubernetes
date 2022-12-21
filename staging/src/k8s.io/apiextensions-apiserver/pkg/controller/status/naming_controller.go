@@ -136,7 +136,7 @@ func (c *NamingConditionController) calculateNamesAndConditions(in *apiextension
 	// HACK(kcp): if it's a bound CRD, reset already claimed resources and kinds to empty, because we need to support
 	// multiple bound CRDs with overlapping names. KCP admission will ensure that a workspace does not have any
 	// naming conflicts.
-	if _, kcpBoundCRD := in.Annotations["apis.kcp.dev/bound-crd"]; kcpBoundCRD {
+	if _, kcpBoundCRD := in.Annotations["apis.kcp.io/bound-crd"]; kcpBoundCRD {
 		allResources = sets.NewString()
 		allKinds = sets.NewString()
 	}

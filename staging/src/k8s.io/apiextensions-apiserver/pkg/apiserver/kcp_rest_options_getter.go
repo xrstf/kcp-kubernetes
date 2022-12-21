@@ -43,15 +43,15 @@ func (t apiBindingAwareCRDRESTOptionsGetter) GetRESTOptions(resource schema.Grou
 
 	ret.StorageConfig.KcpExtraStorageMetadata.Cluster = genericapirequest.Cluster{Wildcard: true}
 	// Normal CRDs (not coming from an APIBinding) are stored in e.g. /registry/mygroup.io/widgets/customresources/...
-	if _, bound := t.crd.Annotations["apis.kcp.dev/bound-crd"]; !bound {
+	if _, bound := t.crd.Annotations["apis.kcp.io/bound-crd"]; !bound {
 		ret.ResourcePrefix += "/customresources"
 		return ret, nil
 	}
 
 	// Bound CRDs must have the associated identity annotation
-	apiIdentity := t.crd.Annotations["apis.kcp.dev/identity"]
+	apiIdentity := t.crd.Annotations["apis.kcp.io/identity"]
 	if apiIdentity == "" {
-		return generic.RESTOptions{}, fmt.Errorf("missing 'apis.kcp.dev/identity' annotation on CRD %s|%s for %s.%s", logicalcluster.From(t.crd), t.crd.Name, t.crd.Spec.Names.Plural, t.crd.Spec.Group)
+		return generic.RESTOptions{}, fmt.Errorf("missing 'apis.kcp.io/identity' annotation on CRD %s|%s for %s.%s", logicalcluster.From(t.crd), t.crd.Name, t.crd.Spec.Names.Plural, t.crd.Spec.Group)
 	}
 
 	// Modify the ResourcePrefix so it results in e.g. /registry/mygroup.io/widgets/identity4567/...
