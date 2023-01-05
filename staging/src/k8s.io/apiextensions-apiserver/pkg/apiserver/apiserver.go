@@ -25,6 +25,7 @@ import (
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/install"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/apiextensions-apiserver/pkg/apiserver/conversion"
 	kcpapiextensionsv1client "k8s.io/apiextensions-apiserver/pkg/client/kcp/clientset/versioned"
 	kcpapiextensionsv1informers "k8s.io/apiextensions-apiserver/pkg/client/kcp/informers/externalversions"
 	"k8s.io/apiextensions-apiserver/pkg/controller/apiapproval"
@@ -49,7 +50,6 @@ import (
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	serverstorage "k8s.io/apiserver/pkg/server/storage"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
-	"k8s.io/apiserver/pkg/util/webhook"
 )
 
 var (
@@ -84,11 +84,6 @@ type ExtraConfig struct {
 	// the CRD Establishing will be hold by 5 seconds.
 	MasterCount int
 
-	// ServiceResolver is used in CR webhook converters to resolve webhook's service names
-	ServiceResolver webhook.ServiceResolver
-	// AuthResolverWrapper is used in CR webhook converters
-	AuthResolverWrapper webhook.AuthenticationInfoResolverWrapper
-
 	Client    kcpapiextensionsv1client.ClusterInterface
 	Informers kcpapiextensionsv1informers.SharedInformerFactory
 
@@ -98,6 +93,9 @@ type ExtraConfig struct {
 	// DisableServerSideApply deactivates Server Side Apply for a specific API server instead of globally through the feature gate
 	// used with the embedded cache server in kcp
 	DisableServerSideApply bool
+
+	// ConversionFactory is used to provider converters for CRs.
+	ConversionFactory conversion.Factory
 }
 
 type Config struct {
@@ -236,8 +234,7 @@ func (c completedConfig) New(delegationTarget genericapiserver.DelegationTarget)
 		c.ExtraConfig.CRDRESTOptionsGetter,
 		c.GenericConfig.AdmissionControl,
 		establishingController,
-		c.ExtraConfig.ServiceResolver,
-		c.ExtraConfig.AuthResolverWrapper,
+		c.ExtraConfig.ConversionFactory,
 		c.ExtraConfig.MasterCount,
 		s.GenericAPIServer.Authorizer,
 		c.GenericConfig.RequestTimeout,
