@@ -95,7 +95,7 @@ func webhookClientConfigForCRD(crd *apiextensionsv1.CustomResourceDefinition) *w
 	return &ret
 }
 
-var _ crConverterInterface = &webhookConverter{}
+var _ CRConverter = &webhookConverter{}
 
 func (f *webhookConverterFactory) NewWebhookConverter(crd *apiextensionsv1.CustomResourceDefinition) (*webhookConverter, error) {
 	restClient, err := f.clientManager.HookClient(*webhookClientConfigForCRD(crd))

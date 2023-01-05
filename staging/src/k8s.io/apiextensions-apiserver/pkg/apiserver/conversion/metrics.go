@@ -44,15 +44,15 @@ func newConverterMertricFactory() *converterMetricFactory {
 	return &converterMetricFactory{durations: map[string]*metrics.HistogramVec{}, factoryLock: sync.Mutex{}}
 }
 
-var _ crConverterInterface = &converterMetric{}
+var _ CRConverter = &converterMetric{}
 
 type converterMetric struct {
-	delegate  crConverterInterface
+	delegate  CRConverter
 	latencies *metrics.HistogramVec
 	crdName   string
 }
 
-func (c *converterMetricFactory) addMetrics(converterName string, crdName string, converter crConverterInterface) (crConverterInterface, error) {
+func (c *converterMetricFactory) addMetrics(converterName, crdName string, converter CRConverter) (CRConverter, error) {
 	c.factoryLock.Lock()
 	defer c.factoryLock.Unlock()
 	metric, exists := c.durations[converterName]
