@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apiextensions-apiserver/pkg/apiserver/conversion"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/storage/storagebackend"
 	"k8s.io/client-go/util/keyutil"
@@ -70,6 +71,8 @@ type ServerRunOptions struct {
 	ServiceAccountTokenMaxExpiration time.Duration
 
 	ShowHiddenMetricsForVersion string
+
+	ConversionFactory conversion.Factory
 }
 
 // completedServerRunOptions is a private wrapper that enforces a call of Complete() before Run can be invoked.
