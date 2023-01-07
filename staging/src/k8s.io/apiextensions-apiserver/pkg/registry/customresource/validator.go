@@ -35,6 +35,8 @@ import (
 )
 
 type customResourceValidator struct {
+	kcpValidateName validation.ValidateNameFunc
+
 	namespaceScoped       bool
 	kind                  schema.GroupVersionKind
 	schemaValidator       *validate.SchemaValidator
@@ -57,7 +59,7 @@ func (a customResourceValidator) Validate(ctx context.Context, obj runtime.Objec
 
 	var allErrs field.ErrorList
 
-	allErrs = append(allErrs, validation.ValidateObjectMetaAccessor(accessor, a.namespaceScoped, validation.NameIsDNSSubdomain, field.NewPath("metadata"))...)
+	allErrs = append(allErrs, validation.ValidateObjectMetaAccessor(accessor, a.namespaceScoped, a.kcpValidateName, field.NewPath("metadata"))...)
 	allErrs = append(allErrs, apiservervalidation.ValidateCustomResource(nil, u.UnstructuredContent(), a.schemaValidator)...)
 	allErrs = append(allErrs, a.ValidateScaleSpec(ctx, u, scale)...)
 	allErrs = append(allErrs, a.ValidateScaleStatus(ctx, u, scale)...)

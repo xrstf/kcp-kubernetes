@@ -54,6 +54,8 @@ import (
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	apivalidation "k8s.io/apimachinery/pkg/api/validation"
+	"k8s.io/apimachinery/pkg/api/validation/path"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
@@ -98,6 +100,10 @@ import (
 	"k8s.io/kube-openapi/pkg/validation/strfmt"
 	"k8s.io/kube-openapi/pkg/validation/validate"
 )
+
+// KcpValidateNameAnnotationKey is the annotation key used to indicate that a CRD should be validated
+// not as the default DNS subdomain.
+const KcpValidateNameAnnotationKey = "internal.kcp.io/validate-name"
 
 // crdHandler serves the `/apis` endpoint.
 // This is registered as a filter so that it never collides with any explicitly registered endpoints
@@ -861,6 +867,11 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 		replicasPathInCustomResource[schema.GroupVersion{Group: crd.Spec.Group, Version: v.Name}.String()] = path
 	}
 
+	kcpValidateName := apivalidation.NameIsDNSSubdomain
+	if crd.Annotations[KcpValidateNameAnnotationKey] == "path-segment" {
+		kcpValidateName = path.ValidatePathSegmentName
+	}
+
 	for _, v := range crd.Spec.Versions {
 		// In addition to Unstructured objects (Custom Resources), we also may sometimes need to
 		// decode unversioned Options objects, so we delegate to parameterScheme for such types.
@@ -955,6 +966,7 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 				typer,
 				crd.Spec.Scope == apiextensionsv1.NamespaceScoped,
 				kind,
+				kcpValidateName,
 				validator,
 				statusValidator,
 				structuralSchemas,
