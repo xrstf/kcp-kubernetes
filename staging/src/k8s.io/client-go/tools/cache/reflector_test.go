@@ -909,7 +909,7 @@ func TestReflectorFullListIfTooLarge(t *testing.T) {
 	}
 }
 
-func TestReflectorSetExpectedType(t *testing.T) {
+func TestGetTypeDescriptionFromObject(t *testing.T) {
 	obj := &unstructured.Unstructured{}
 	gvk := schema.GroupVersionKind{
 		Group:   "mygroup",
@@ -917,48 +917,71 @@ func TestReflectorSetExpectedType(t *testing.T) {
 		Kind:    "MyKind",
 	}
 	obj.SetGroupVersionKind(gvk)
+
 	testCases := map[string]struct {
-		inputType        interface{}
-		expectedTypeName string
-		expectedType     reflect.Type
-		expectedGVK      *schema.GroupVersionKind
+		inputType               interface{}
+		expectedTypeDescription string
 	}{
 		"Nil type": {
-			expectedTypeName: defaultExpectedTypeName,
+			expectedTypeDescription: defaultExpectedTypeName,
 		},
 		"Normal type": {
-			inputType:        &v1.Pod{},
-			expectedTypeName: "*v1.Pod",
-			expectedType:     reflect.TypeOf(&v1.Pod{}),
+			inputType:               &v1.Pod{},
+			expectedTypeDescription: "*v1.Pod",
 		},
 		"Unstructured type without GVK": {
-			inputType:        &unstructured.Unstructured{},
-			expectedTypeName: "*unstructured.Unstructured",
-			expectedType:     reflect.TypeOf(&unstructured.Unstructured{}),
+			inputType:               &unstructured.Unstructured{},
+			expectedTypeDescription: "*unstructured.Unstructured",
 		},
 		"Unstructured type with GVK": {
-			inputType:        obj,
-			expectedTypeName: gvk.String(),
-			expectedType:     reflect.TypeOf(&unstructured.Unstructured{}),
-			expectedGVK:      &gvk,
+			inputType:               obj,
+			expectedTypeDescription: gvk.String(),
 		},
 	}
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			r := &Reflector{}
-			r.setExpectedType(tc.inputType)
-			if tc.expectedType != r.expectedType {
-				t.Fatalf("Expected expectedType %v, got %v", tc.expectedType, r.expectedType)
+			typeDescription := getTypeDescriptionFromObject(tc.inputType)
+			if tc.expectedTypeDescription != typeDescription {
+				t.Fatalf("Expected typeDescription %v, got %v", tc.expectedTypeDescription, typeDescription)
 			}
-			if tc.expectedTypeName != r.expectedTypeName {
-				t.Fatalf("Expected expectedTypeName %v, got %v", tc.expectedTypeName, r.expectedTypeName)
-			}
-			gvkNotEqual := (tc.expectedGVK == nil) != (r.expectedGVK == nil)
-			if tc.expectedGVK != nil && r.expectedGVK != nil {
-				gvkNotEqual = *tc.expectedGVK != *r.expectedGVK
+		})
+	}
+}
+
+func TestGetExpectedGVKFromObject(t *testing.T) {
+	obj := &unstructured.Unstructured{}
+	gvk := schema.GroupVersionKind{
+		Group:   "mygroup",
+		Version: "v1",
+		Kind:    "MyKind",
+	}
+	obj.SetGroupVersionKind(gvk)
+
+	testCases := map[string]struct {
+		inputType   interface{}
+		expectedGVK *schema.GroupVersionKind
+	}{
+		"Nil type": {},
+		"Some non Unstructured type": {
+			inputType: &v1.Pod{},
+		},
+		"Unstructured type without GVK": {
+			inputType: &unstructured.Unstructured{},
+		},
+		"Unstructured type with GVK": {
+			inputType:   obj,
+			expectedGVK: &gvk,
+		},
+	}
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			expectedGVK := getExpectedGVKFromObject(tc.inputType)
+			gvkNotEqual := (tc.expectedGVK == nil) != (expectedGVK == nil)
+			if tc.expectedGVK != nil && expectedGVK != nil {
+				gvkNotEqual = *tc.expectedGVK != *expectedGVK
 			}
 			if gvkNotEqual {
-				t.Fatalf("Expected expectedGVK %v, got %v", tc.expectedGVK, r.expectedGVK)
+				t.Fatalf("Expected expectedGVK %v, got %v", tc.expectedGVK, expectedGVK)
 			}
 		})
 	}
