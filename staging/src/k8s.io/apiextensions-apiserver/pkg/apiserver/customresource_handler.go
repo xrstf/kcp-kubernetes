@@ -27,8 +27,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/kcp-dev/logicalcluster/v3"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	kcpapiextensionsv1informers "k8s.io/apiextensions-apiserver/pkg/client/kcp/informers/externalversions/apiextensions/v1"
 	kcpapiextensionsv1listers "k8s.io/apiextensions-apiserver/pkg/client/kcp/listers/apiextensions/v1"
@@ -88,7 +88,6 @@ import (
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	flowcontrolrequest "k8s.io/apiserver/pkg/util/flowcontrol/request"
 	utilopenapi "k8s.io/apiserver/pkg/util/openapi"
-	"k8s.io/apiserver/pkg/util/webhook"
 	"k8s.io/apiserver/pkg/warning"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/scale"
@@ -132,7 +131,7 @@ type crdHandler struct {
 	// CRD establishing process for HA clusters.
 	masterCount int
 
-	converterFactory *conversion.CRConverterFactory
+	converterFactory conversion.Factory
 
 	// so that we can do create on update.
 	authorizer authorizer.Authorizer
@@ -195,7 +194,27 @@ type crdStorageMap map[types.UID]*crdInfo
 
 const byGroupResource = "byGroupResource"
 
-func NewCustomResourceDefinitionHandler(versionDiscoveryHandler *versionDiscoveryHandler, groupDiscoveryHandler *groupDiscoveryHandler, crdInformer kcpapiextensionsv1informers.CustomResourceDefinitionClusterInformer, delegate http.Handler, restOptionsGetter generic.RESTOptionsGetter, admission admission.Interface, establishingController *establish.EstablishingController, serviceResolver webhook.ServiceResolver, authResolverWrapper webhook.AuthenticationInfoResolverWrapper, masterCount int, authorizer authorizer.Authorizer, requestTimeout time.Duration, minRequestTimeout time.Duration, staticOpenAPISpec *spec.Swagger, maxRequestBodyBytes int64, disableServerSideApply bool) (*crdHandler, error) {
+func NewCustomResourceDefinitionHandler(
+	versionDiscoveryHandler *versionDiscoveryHandler,
+	groupDiscoveryHandler *groupDiscoveryHandler,
+	crdInformer kcpapiextensionsv1informers.CustomResourceDefinitionClusterInformer,
+	delegate http.Handler,
+	restOptionsGetter generic.RESTOptionsGetter,
+	admission admission.Interface,
+	establishingController *establish.EstablishingController,
+	converterFactory conversion.Factory,
+	masterCount int,
+	authorizer authorizer.Authorizer,
+	requestTimeout time.Duration,
+	minRequestTimeout time.Duration,
+	staticOpenAPISpec *spec.Swagger,
+	maxRequestBodyBytes int64,
+	disableServerSideApply bool,
+) (*crdHandler, error) {
+	if converterFactory == nil {
+		return nil, fmt.Errorf("converterFactory is required")
+	}
+
 	ret := &crdHandler{
 		versionDiscoveryHandler: versionDiscoveryHandler,
 		groupDiscoveryHandler:   groupDiscoveryHandler,
@@ -206,6 +225,7 @@ func NewCustomResourceDefinitionHandler(versionDiscoveryHandler *versionDiscover
 		restOptionsGetter:       restOptionsGetter,
 		admission:               admission,
 		establishingController:  establishingController,
+		converterFactory:        converterFactory,
 		masterCount:             masterCount,
 		authorizer:              authorizer,
 		requestTimeout:          requestTimeout,
@@ -242,12 +262,6 @@ func NewCustomResourceDefinitionHandler(versionDiscoveryHandler *versionDiscover
 			return nil, fmt.Errorf("error adding byName index to CRD lister: %v", err)
 		}
 	}
-
-	crConverterFactory, err := conversion.NewCRConverterFactory(serviceResolver, authResolverWrapper)
-	if err != nil {
-		return nil, err
-	}
-	ret.converterFactory = crConverterFactory
 
 	ret.customStorage.Store(crdStorageMap{})
 
@@ -841,7 +855,12 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 		}
 	}
 
-	safeConverter, unsafeConverter, err := r.converterFactory.NewConverter(crd)
+	converter, err := r.converterFactory.NewConverter(crd)
+	if err != nil {
+		return nil, fmt.Errorf("error creating converter for %s: %w", crd.Name, err)
+	}
+
+	safeConverter, unsafeConverter, err := conversion.NewDelegatingConverter(crd, converter)
 	if err != nil {
 		return nil, err
 	}

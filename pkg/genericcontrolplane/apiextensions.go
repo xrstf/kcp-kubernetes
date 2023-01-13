@@ -31,7 +31,6 @@ import (
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	"k8s.io/apiserver/pkg/util/feature"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
-	"k8s.io/apiserver/pkg/util/webhook"
 	kubeexternalinformers "k8s.io/client-go/informers"
 	"k8s.io/kubernetes/pkg/genericcontrolplane/options"
 )
@@ -41,8 +40,6 @@ func CreateAPIExtensionsConfig(
 	externalInformers kubeexternalinformers.SharedInformerFactory,
 	pluginInitializers []admission.PluginInitializer,
 	commandOptions options.CompletedServerRunOptions,
-	serviceResolver webhook.ServiceResolver,
-	authResolverWrapper webhook.AuthenticationInfoResolverWrapper,
 ) (*apiextensionsapiserver.Config, error) {
 	// make a shallow copy to let us twiddle a few things
 	// most of the config actually remains the same.  We only need to mess with a couple items related to the particulars of the apiextensions
@@ -92,8 +89,7 @@ func CreateAPIExtensionsConfig(
 		ExtraConfig: apiextensionsapiserver.ExtraConfig{
 			CRDRESTOptionsGetter: apiextensionsoptions.NewCRDRESTOptionsGetter(etcdOptions),
 			MasterCount:          1, // TODO: pass this in correctly
-			AuthResolverWrapper:  authResolverWrapper,
-			ServiceResolver:      serviceResolver,
+			ConversionFactory:    commandOptions.ConversionFactory,
 		},
 	}
 
