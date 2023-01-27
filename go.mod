@@ -101,7 +101,7 @@ require (
 	gonum.org/v1/gonum v0.6.2
 	gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e // indirect
 	google.golang.org/api v0.46.0
-	google.golang.org/genproto v0.0.0-20220107163113-42d7afdf6368
+	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/gcfg.v1 v1.2.0
@@ -267,7 +267,7 @@ replace (
 	github.com/golangplus/testing => github.com/golangplus/testing v0.0.0-20180327235837-af21d9c3145e
 	github.com/google/btree => github.com/google/btree v1.0.1
 	github.com/google/cadvisor => github.com/google/cadvisor v0.44.1
-	github.com/google/cel-go => github.com/google/cel-go v0.10.1
+	github.com/google/cel-go => github.com/google/cel-go v0.12.6
 	github.com/google/cel-spec => github.com/google/cel-spec v0.6.0
 	github.com/google/gnostic => github.com/google/gnostic v0.5.7-v3refs
 	github.com/google/go-cmp => github.com/google/go-cmp v0.5.5
