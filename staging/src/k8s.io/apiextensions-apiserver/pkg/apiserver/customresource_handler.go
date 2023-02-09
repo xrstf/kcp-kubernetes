@@ -434,14 +434,18 @@ func (r *crdHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var handlerFunc http.HandlerFunc
-	subresources, err := apiextensionshelpers.GetSubresourcesForVersion(crd, requestInfo.APIVersion)
-	if err != nil {
-		utilruntime.HandleError(err)
-		responsewriters.ErrorNegotiated(
-			apierrors.NewInternalError(fmt.Errorf("could not properly serve the subresource")),
-			Codecs, schema.GroupVersion{Group: requestInfo.APIGroup, Version: requestInfo.APIVersion}, w, req,
-		)
-		return
+	var subresources *apiextensionsv1.CustomResourceSubresources
+	// Subresources (scale, status) are not applicable for wildcard partial metadata requests
+	if !wildcardPartialMetadata {
+		subresources, err = apiextensionshelpers.GetSubresourcesForVersion(crd, requestInfo.APIVersion)
+		if err != nil {
+			utilruntime.HandleError(err)
+			responsewriters.ErrorNegotiated(
+				apierrors.NewInternalError(fmt.Errorf("could not properly serve the subresource")),
+				Codecs, schema.GroupVersion{Group: requestInfo.APIGroup, Version: requestInfo.APIVersion}, w, req,
+			)
+			return
+		}
 	}
 	switch {
 	case subresource == "status" && subresources != nil && subresources.Status != nil:
