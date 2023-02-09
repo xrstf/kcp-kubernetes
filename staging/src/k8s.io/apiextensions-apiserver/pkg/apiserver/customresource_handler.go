@@ -886,7 +886,7 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 	}
 
 	if strings.HasSuffix(string(crd.UID), ".wildcard.partial-metadata") {
-		converter = conversion.NewNOPConverter()
+		converter = conversion.NewKCPWildcardPartialMetadataConverter()
 	}
 
 	safeConverter, unsafeConverter, err := conversion.NewDelegatingConverter(crd, converter)
