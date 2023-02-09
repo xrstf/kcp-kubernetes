@@ -348,7 +348,9 @@ func (r *crdHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if !apiextensionshelpers.HasServedCRDVersion(crd, requestInfo.APIVersion) {
+	wildcardPartialMetadata := strings.HasSuffix(string(crd.UID), ".wildcard.partial-metadata")
+	// For wildcard partial metadata requests, we don't care if the CRD serves the version being requested or not.
+	if !wildcardPartialMetadata && !apiextensionshelpers.HasServedCRDVersion(crd, requestInfo.APIVersion) {
 		r.delegate.ServeHTTP(w, req)
 		return
 	}
@@ -384,7 +386,9 @@ func (r *crdHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		)
 		return
 	}
-	if !hasServedCRDVersion(crdInfo.spec, requestInfo.APIVersion) {
+
+	// For wildcard partial metadata requests, we don't care if the CRD serves the version being requested or not.
+	if !wildcardPartialMetadata && !hasServedCRDVersion(crdInfo.spec, requestInfo.APIVersion) {
 		r.delegate.ServeHTTP(w, req)
 		return
 	}
@@ -507,8 +511,31 @@ func ConvertProtobufRequestsToJson(verb string, req *http.Request, gvk schema.Gr
 }
 
 func (r *crdHandler) serveResource(w http.ResponseWriter, req *http.Request, requestInfo *apirequest.RequestInfo, crdInfo *crdInfo, crd *apiextensionsv1.CustomResourceDefinition, terminating bool, supportedTypes []string) http.HandlerFunc {
+	wildcardPartialMetadata := strings.HasSuffix(string(crd.UID), ".wildcard.partial-metadata")
+
 	requestScope := crdInfo.requestScopes[requestInfo.APIVersion]
+	if requestScope == nil && wildcardPartialMetadata {
+		// If requestScope is nil and this is a wildcard partial metadata request, it means the request was for e.g.
+		// v1 but the initial CRD used to create the wildcard partial metadata variant doesn't have v1. This is ok!
+		// Because this is a wildcard partial metadata request, we need *any* requestScope for *any* valid version
+		// from this CRD. Iterate through the valid requestScopes and pick the first one.
+		for _, s := range crdInfo.requestScopes {
+			requestScope = s
+			break
+		}
+	}
+
 	storage := crdInfo.storages[requestInfo.APIVersion].CustomResource
+	if storage == nil && wildcardPartialMetadata {
+		// If storage is nil and this is a wildcard partial metadata request, it means the request was for e.g.
+		// v1 but the initial CRD used to create the wildcard partial metadata variant doesn't have v1. This is ok!
+		// Because this is a wildcard partial metadata request, we need *any* storage for *any* valid version
+		// from this CRD. Iterate through the valid storages and pick the first one.
+		for _, s := range crdInfo.storages {
+			storage = s.CustomResource
+			break
+		}
+	}
 
 	switch requestInfo.Verb {
 	case "get":
@@ -533,12 +560,6 @@ func (r *crdHandler) serveResource(w http.ResponseWriter, req *http.Request, req
 			responsewriters.ErrorNegotiated(err, Codecs, schema.GroupVersion{Group: requestInfo.APIGroup, Version: requestInfo.APIVersion}, w, req)
 			return nil
 		}
-
-		// kcp 2278 debugging
-		if strings.HasSuffix(string(crd.UID), ".wildcard.partial-metadata") {
-			klog.Errorf("kcp 2278: create with wildcard uid %v", string(crd.UID))
-		}
-		// kcp 2278 debugging
 
 		return handlers.CreateResource(storage, requestScope, r.admission)
 	case "update":
@@ -858,6 +879,10 @@ func (r *crdHandler) getOrCreateServingInfoFor(crd *apiextensionsv1.CustomResour
 	converter, err := r.converterFactory.NewConverter(crd)
 	if err != nil {
 		return nil, fmt.Errorf("error creating converter for %s: %w", crd.Name, err)
+	}
+
+	if strings.HasSuffix(string(crd.UID), ".wildcard.partial-metadata") {
+		converter = conversion.NewNOPConverter()
 	}
 
 	safeConverter, unsafeConverter, err := conversion.NewDelegatingConverter(crd, converter)

@@ -1109,7 +1109,8 @@ func (lw *cacherListerWatcher) List(options metav1.ListOptions) (runtime.Object,
 		Predicate:            pred,
 		Recursive:            true,
 	}
-	if err := lw.storage.GetList(createKCPClusterAwareContext(lw.kcpExtraStorageMetadata), lw.resourcePrefix, storageOpts, list); err != nil {
+
+	if err := lw.storage.GetList(createKCPClusterAwareContext(lw.kcpExtraStorageMetadata), lw.kcpAwareResourcePrefix(), storageOpts, list); err != nil {
 		return nil, err
 	}
 	return list, nil
@@ -1123,7 +1124,8 @@ func (lw *cacherListerWatcher) Watch(options metav1.ListOptions) (watch.Interfac
 		Recursive:       true,
 		ProgressNotify:  true,
 	}
-	return lw.storage.Watch(createKCPClusterAwareContext(lw.kcpExtraStorageMetadata), lw.resourcePrefix, opts)
+
+	return lw.storage.Watch(createKCPClusterAwareContext(lw.kcpExtraStorageMetadata), lw.kcpAwareResourcePrefix(), opts)
 }
 
 func createKCPClusterAwareContext(meta *storagebackend.KcpStorageMetadata) context.Context {
