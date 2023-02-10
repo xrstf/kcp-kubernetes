@@ -231,6 +231,7 @@ func asPartialObjectMetadata(result runtime.Object, groupVersion schema.GroupVer
 	}
 	partial := meta.AsPartialObjectMetadata(m)
 	partial.GetObjectKind().SetGroupVersionKind(groupVersion.WithKind("PartialObjectMetadata"))
+	setKCPOriginalAPIVersionAnnotation(result, partial)
 	return partial, nil
 }
 
@@ -251,6 +252,7 @@ func asPartialObjectMetadataList(result runtime.Object, groupVersion schema.Grou
 			}
 			partial := meta.AsPartialObjectMetadata(m)
 			partial.GetObjectKind().SetGroupVersionKind(gvk)
+			setKCPOriginalAPIVersionAnnotation(obj, partial)
 			list.Items = append(list.Items, *partial)
 			return nil
 		})
@@ -271,6 +273,7 @@ func asPartialObjectMetadataList(result runtime.Object, groupVersion schema.Grou
 			}
 			partial := meta.AsPartialObjectMetadata(m)
 			partial.GetObjectKind().SetGroupVersionKind(gvk)
+			setKCPOriginalAPIVersionAnnotation(obj, partial)
 			list.Items = append(list.Items, *partial)
 			return nil
 		})
