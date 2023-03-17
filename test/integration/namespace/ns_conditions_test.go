@@ -195,7 +195,9 @@ func namespaceLifecycleSetup(t *testing.T) (kubeapiservertesting.TearDownFunc, *
 		panic(err)
 	}
 
-	discoverResourcesFn := clientSet.Discovery().ServerPreferredNamespacedResources
+	discoverResourcesFn := func(clusterName string) ([]*metav1.APIResourceList, error) {
+		return clientSet.Discovery().ServerPreferredNamespacedResources()
+	}
 	_, ctx := ktesting.NewTestContext(t)
 	controller := namespace.NewNamespaceController(
 		ctx,

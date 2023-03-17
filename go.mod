@@ -29,6 +29,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/docker/go-units v0.5.0
+	github.com/emicklei/go-restful v2.16.0+incompatible
 	github.com/emicklei/go-restful/v3 v3.9.0
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/fsnotify/fsnotify v1.6.0
@@ -45,6 +46,9 @@ require (
 	github.com/google/gofuzz v1.1.0
 	github.com/google/uuid v1.3.0
 	github.com/ishidawataru/sctp v0.0.0-20190723014705-7c296d48a2b5
+	github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0.0.20230616083523-2a5e7519c479
+	github.com/kcp-dev/client-go v0.0.0-20230622124029-fd27a05169f5
+	github.com/kcp-dev/logicalcluster/v3 v3.0.4
 	github.com/libopenstorage/openstorage v1.0.0
 	github.com/lithammer/dedent v1.1.0
 	github.com/moby/ipvs v1.1.0
@@ -93,12 +97,12 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.0.0
+	k8s.io/api v0.27.3
 	k8s.io/apiextensions-apiserver v0.0.0
-	k8s.io/apimachinery v0.0.0
+	k8s.io/apimachinery v0.27.3
 	k8s.io/apiserver v0.0.0
 	k8s.io/cli-runtime v0.0.0
-	k8s.io/client-go v0.0.0
+	k8s.io/client-go v0.27.3
 	k8s.io/cloud-provider v0.0.0
 	k8s.io/cluster-bootstrap v0.0.0
 	k8s.io/code-generator v0.0.0
@@ -205,6 +209,7 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/rubiojr/go-vhd v0.0.0-20200706105327-02e210299021 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/seccomp/libseccomp-golang v0.9.2-0.20220502022130-f33da4d89646 // indirect
