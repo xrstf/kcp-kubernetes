@@ -331,7 +331,7 @@ func TestTokenGenerateAndValidate(t *testing.T) {
 
 	for k, tc := range testCases {
 		auds := authenticator.Audiences{"api"}
-		getter := serviceaccountcontroller.NewGetterFromClient(
+		getter := serviceaccountcontroller.NewClusterGetterFromClient(
 			tc.Client,
 			v1listers.NewSecretLister(newIndexer(func(namespace, name string) (interface{}, error) {
 				return tc.Client.CoreV1().Secrets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
@@ -339,9 +339,9 @@ func TestTokenGenerateAndValidate(t *testing.T) {
 			v1listers.NewServiceAccountLister(newIndexer(func(namespace, name string) (interface{}, error) {
 				return tc.Client.CoreV1().ServiceAccounts(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 			})),
-			v1listers.NewPodLister(newIndexer(func(namespace, name string) (interface{}, error) {
-				return tc.Client.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
-			})),
+			// v1listers.NewPodLister(newIndexer(func(namespace, name string) (interface{}, error) {
+			// 	return tc.Client.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+			// })),
 		)
 		var secretsWriter typedv1core.SecretsGetter
 		if tc.Client != nil {
