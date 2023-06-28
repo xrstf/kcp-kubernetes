@@ -34,6 +34,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/apiserver/pkg/kcp"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/kubernetes/pkg/controller/namespace/deletion"
@@ -193,7 +194,7 @@ func (nm *NamespaceController) syncNamespaceFromKey(ctx context.Context, key str
 		utilruntime.HandleError(fmt.Errorf("Unable to retrieve namespace %v from store: %v", key, err))
 		return err
 	}
-	return nm.namespacedResourcesDeleter.Delete(ctx, clusterName, namespace.Name)
+	return nm.namespacedResourcesDeleter.Delete(kcp.WithCluster(ctx, clusterName), namespace.Name)
 }
 
 // Run starts observing the system with the specified number of workers.

@@ -45,7 +45,7 @@ func NewStorage(resource schema.GroupResource, singularResource schema.GroupReso
 	return NewStorageWithCustomStore(resource, singularResource, kind, listKind, strategy, optsGetter, categories, tableConvertor, replicasPathMapping, nil)
 }
 
-func NewStorageWithCustomStore(resource schema.GroupResource, singularResource schema.GroupResource, kind, listKind schema.GroupVersionKind, strategy customResourceStrategy, optsGetter generic.RESTOptionsGetter, categories []string, tableConvertor rest.TableConvertor, replicasPathMapping fieldmanager.ResourcePathMappings, newStores NewStores) CustomResourceStorage {
+func NewStorageWithCustomStore(resource schema.GroupResource, singularResource schema.GroupResource, kind, listKind schema.GroupVersionKind, strategy customResourceStrategy, optsGetter generic.RESTOptionsGetter, categories []string, tableConvertor rest.TableConvertor, replicasPathMapping managedfields.ResourcePathMappings, newStores NewStores) CustomResourceStorage {
 	var storage CustomResourceStorage
 	store := &genericregistry.Store{
 		NewFunc: func() runtime.Object {

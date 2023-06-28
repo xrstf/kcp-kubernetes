@@ -95,12 +95,9 @@ func (p *openAPIServiceProvider) ForCluster(clusterName logicalcluster.Name) *ha
 
 func (p *openAPIServiceProvider) AddCuster(clusterName logicalcluster.Name) {
 	if _, found := p.openAPIServices[clusterName]; !found {
-		openAPIVersionedService, err := handler.NewOpenAPIService(p.staticSpec)
-		if err != nil {
-			klog.Fatalf("Failed to create OpenAPIService: %v", err)
-		}
+		openAPIVersionedService := handler.NewOpenAPIService(p.staticSpec)
 
-		if err = openAPIVersionedService.RegisterOpenAPIVersionedService(p.path, &clusterAwarePathHandler{
+		if err := openAPIVersionedService.RegisterOpenAPIVersionedService(p.path, &clusterAwarePathHandler{
 			clusterName: clusterName,
 			addHandlerForCluster: func(clusterName logicalcluster.Name, handler http.Handler) {
 				p.handlers[clusterName] = handler
@@ -136,12 +133,9 @@ func (o *openAPIServiceProvider) UpdateSpec(openapiSpec *spec.Swagger) (err erro
 }
 
 func (p *openAPIServiceProvider) Register() {
-	defaultOpenAPIService, err := handler.NewOpenAPIService(p.staticSpec)
-	if err != nil {
-		klog.Fatalf("Failed to create OpenAPIService: %v", err)
-	}
+	defaultOpenAPIService := handler.NewOpenAPIService(p.staticSpec)
 
-	err = defaultOpenAPIService.RegisterOpenAPIVersionedService(p.path, &clusterAwarePathHandler{
+	err := defaultOpenAPIService.RegisterOpenAPIVersionedService(p.path, &clusterAwarePathHandler{
 		addHandlerForCluster: func(clusterName logicalcluster.Name, handler http.Handler) {
 			p.defaultOpenAPIServiceHandler = handler
 		},
@@ -156,7 +150,8 @@ func (p *openAPIServiceProvider) Register() {
 
 // Install adds the SwaggerUI webservice to the given mux.
 func (oa OpenAPI) InstallV2(c *restful.Container, mux *mux.PathRecorderMux) (OpenAPIServiceProvider, *spec.Swagger) {
-	spec, err := builder2.BuildOpenAPISpec(restfuladapter.AdaptWebServices(c.RegisteredWebServices()), oa.Config)
+	// spec, err := builder2.BuildOpenAPISpec(restfuladapter.AdaptWebServices(c.RegisteredWebServices()), oa.Config) // xrstf
+	spec, err := builder2.BuildOpenAPISpec(c.RegisteredWebServices(), oa.Config)
 	if err != nil {
 		klog.Fatalf("Failed to build open api spec for root: %v", err)
 	}

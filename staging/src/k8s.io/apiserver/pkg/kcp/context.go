@@ -16,11 +16,18 @@ limitations under the License.
 
 package kcp
 
-import "context"
+import (
+	"context"
+
+	"github.com/kcp-dev/logicalcluster/v3"
+)
 
 type key int
 
-var crdKey key
+const (
+	clusterKey key = iota
+	crdKey
+)
 
 // WithCustomResourceIndicator wraps ctx and returns a new context.Context that indicates the current request is for a
 // CustomResource. This is required to support wildcard (cross-cluster) partial metadata requests, as the keys in
@@ -40,4 +47,15 @@ func CustomResourceIndicatorFrom(ctx context.Context) bool {
 	}
 
 	return v.(bool)
+}
+
+// WithCluster injects a cluster name into a context.
+func WithCluster(ctx context.Context, cluster logicalcluster.Name) context.Context {
+	return context.WithValue(ctx, clusterKey, cluster)
+}
+
+// ClusterFrom extracts a cluster name from the context.
+func ClusterFrom(ctx context.Context) (logicalcluster.Name, bool) {
+	s, ok := ctx.Value(clusterKey).(logicalcluster.Name)
+	return s, ok
 }
